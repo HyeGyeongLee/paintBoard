@@ -45,14 +45,20 @@ window.onload = function () {
         painting = false;
     }
 
-    function changeColorPicker(color) {
-        const backgroundColorPicker = document.getElementById('backgroundColorPicker');
-        backgroundColorPicker.value = color;
+    // RGB를 16진수로 변환하는 헬퍼 함수
+    function rgbToHex(r, g, b) {
+        if (r > 255 || g > 255 || b > 255)
+            throw "Invalid color component";
+        return ((r << 16) | (g << 8) | b).toString(16);
     }
+
+    let isSpoidMode = false;
 
     document.body.addEventListener('click', function (event) {
         console.log(event.target)
         const colorElement = event.target.closest('.controls__color');
+        const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+
         switch(event.target.id) {
             case 'controls__color' :
                     if (colorElement) {
@@ -62,7 +68,7 @@ window.onload = function () {
                             console.log(color, ':: color')
 
                             //색 설정 바꾸기
-                            changeColorPicker(color);
+                            backgroundColorPicker.value = color;
 
                             // 지우개 리셋..
                             ctx.globalCompositeOperation = "source-over";
@@ -73,22 +79,55 @@ window.onload = function () {
                         }
                     }
                 break;
-            case 'erase':
+            case 'eraseButton':
                     removeCanvasListeners();
                     ctx.globalCompositeOperation = "destination-out";  
                     ctx.strokeStyle = "#FFC300";
                     initCanvasListeners();
                 break;
             case 'fillSytleButton':
-                    const backgroundColorPicker = document.getElementById('backgroundColorPicker');
                     ctx.fillStyle = backgroundColorPicker.value;
                     ctx.fillRect(0,0,1200,500);
                 break;
+            case 'spoidButton':
+                    isSpoidMode = true;  // 스포이드 모드 활성화
+                    removeCanvasListeners();  // 그리기 이벤트 제거
 
-        }
-        
+                break;
+            case 'backgroundColorPicker':
+                    backgroundColorPicker.addEventListener('change', function(event){
+                        ctx.strokeStyle = event.target.value;
+                        console.log(event.target.value,':changeColorPicker change');
+                    })
+                    initCanvasListeners();
+                break;
+        } 
         
     });
+
+
+    // 캔버스 내에서 클릭 시
+    myCanvas.addEventListener('click', function(event) {
+        if (isSpoidMode) {
+            const x = event.offsetX;
+            const y = event.offsetY;
+            
+            try {
+                const pixelData = ctx.getImageData(x, y, 1, 1).data;
+                const hex = "#" + ("000000" + rgbToHex(pixelData[0], pixelData[1], pixelData[2])).slice(-6);
+                console.log(hex, ':hex');
+                backgroundColorPicker.value = hex;
+                
+                // 색상 선택 후 스포이드 모드 해제
+                isSpoidMode = false;
+                ctx.strokeStyle = hex;
+                initCanvasListeners();
+            } catch(error) {
+                console.error('색상을 가져오는데 실패했습니다:', error);
+            }
+        }
+    });
+
 
 
 }
