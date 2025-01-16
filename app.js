@@ -101,6 +101,9 @@ window.onload = function () {
                     })
                     initCanvasListeners();
                 break;
+            case 'pencilButton':
+                    initCanvasListeners();
+                break;
         } 
         
     });
