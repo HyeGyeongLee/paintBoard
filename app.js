@@ -18,6 +18,9 @@ window.onload = function () {
     }
 
     function initCanvasListeners() {
+        // 지우개 리셋..
+        ctx.globalCompositeOperation = "source-over";
+        
         myCanvas.addEventListener("mousemove", onMouseMove);
         myCanvas.addEventListener("mousedown", onMouseDown);
         myCanvas.addEventListener("mouseup", stopPainting);
@@ -70,8 +73,6 @@ window.onload = function () {
                             //색 설정 바꾸기
                             backgroundColorPicker.value = color;
 
-                            // 지우개 리셋..
-                            ctx.globalCompositeOperation = "source-over";
 
                             //색 바꾸기&드레그 드로잉 출력
                             ctx.strokeStyle = color;
@@ -82,7 +83,7 @@ window.onload = function () {
             case 'eraseButton':
                     removeCanvasListeners();
                     ctx.globalCompositeOperation = "destination-out";  
-                    ctx.strokeStyle = "#FFC300";
+                    ctx.strokeStyle = "#FFFFFF";
                     initCanvasListeners();
                 break;
             case 'fillSytleButton':
