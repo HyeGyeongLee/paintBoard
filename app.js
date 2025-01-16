@@ -45,29 +45,29 @@ window.onload = function () {
         painting = false;
     }
 
-    function colorPicker() {
+    function changeColorPicker(color) {
         const backgroundColorPicker = document.getElementById('backgroundColorPicker');
-        // const content = document.getElementById('content');
-
-        backgroundColorPicker.addEventListener('input', () => {
-            const selectedColor = backgroundColorPicker.value;
-            // content.style.backgroundColor = selectedColor;
-        });
+        backgroundColorPicker.value = color;
     }
 
     document.body.addEventListener('click', function (event) {
         console.log(event.target)
-
+        const colorElement = event.target.closest('.controls__color');
         switch(event.target.id) {
             case 'controls__color' :
-                const colorElement = event.target.closest('.controls__color');
                     if (colorElement) {
                         const color = colorElement.dataset.color;
             
                         if(color) {
                             console.log(color, ':: color')
+
+                            //색 설정 바꾸기
+                            changeColorPicker(color);
+
                             // 지우개 리셋..
                             ctx.globalCompositeOperation = "source-over";
+
+                            //색 바꾸기&드레그 드로잉 출력
                             ctx.strokeStyle = color;
                             initCanvasListeners();
                         }
@@ -78,6 +78,11 @@ window.onload = function () {
                     ctx.globalCompositeOperation = "destination-out";  
                     ctx.strokeStyle = "#FFC300";
                     initCanvasListeners();
+                break;
+            case 'fillSytleButton':
+                    const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+                    ctx.fillStyle = backgroundColorPicker.value;
+                    ctx.fillRect(0,0,1200,500);
                 break;
 
         }
