@@ -133,14 +133,14 @@ window.onload = function () {
                     removeCanvasListeners();  // 그리기 이벤트 제거
 
                 break;
+            case 'pencilButton':
             case 'backgroundColorPicker':
                     backgroundColorPicker.addEventListener('change', function(event){
                         ctx.strokeStyle = event.target.value;
                         console.log(event.target.value,':changeColorPicker change');
                     })
-                    initCanvasListeners();
-                break;
-            case 'pencilButton':
+
+                    ctx.strokeStyle = backgroundColorPicker.value;
                     initCanvasListeners();
                 break;
             case 'textButton':
