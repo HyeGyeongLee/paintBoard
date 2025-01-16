@@ -10,6 +10,8 @@ window.onload = function () {
     let painting = false;
     let isSpoidMode = false;
     let isTextMode = false;
+    let canCreateNewText = false;
+    let isEditingText = false;  
     const font = '14px sans-serif';
 
     function removeCanvasListeners() {
@@ -249,9 +251,39 @@ window.onload = function () {
         // 텍스트 편집 기능
         textArea.addEventListener('click', function(e) {
             e.stopPropagation();
+            isEditingText = true;  // 편집 모드 활성화
+            isTextMode = false;    // 새 텍스트 생성 모드 비활성화
+            canCreateNewText = false;
+
+            // 다른 모든 텍스트 상자들의 편집 모드와 테두리 해제
+            const allTextBoxes = document.querySelectorAll('.resizable.draggable');
+            allTextBoxes.forEach(box => {
+                if (box !== this.parentElement) {
+                    const otherTextArea = box.querySelector('[contenteditable]');
+                    if (otherTextArea) {
+                        otherTextArea.contentEditable = 'false';
+                        otherTextArea.style.cursor = 'move';
+                        box.style.cursor = 'move';
+                        box.style.border = 'none';
+                        
+                        const handles = box.querySelectorAll('.ui-resizable-handle');
+                        handles.forEach(handle => {
+                            handle.style.display = 'none';
+                        });
+                    }
+                }
+            });
+
+            // 현재 텍스트 상자 활성화
             this.contentEditable = 'true';
             this.style.cursor = 'text';
             container.style.cursor = 'text';
+            container.style.border = '1px dashed #000000';
+            
+            const handles = container.querySelectorAll('.ui-resizable-handle');
+            handles.forEach(handle => {
+                handle.style.display = 'block';
+            });
         });
     
         textArea.addEventListener('blur', function() {
@@ -333,7 +365,9 @@ window.onload = function () {
                     initCanvasListeners();
                 break;
             case 'textButton':
-                isTextMode = true;
+                isTextMode = !isTextMode;
+                isEditingText = false;
+                canCreateNewText = isTextMode; // isTextMode가 true면 canCreateNewText도 true로 설정
                 break;
         } 
         
@@ -342,6 +376,24 @@ window.onload = function () {
 
     // 캔버스 내에서 클릭 시
     myCanvas.addEventListener('click', function(event) {
+
+        const allTextBoxes = document.querySelectorAll('.resizable.draggable');
+        allTextBoxes.forEach(box => {
+            const textArea = box.querySelector('[contenteditable]');
+            if (textArea) {
+                textArea.contentEditable = 'false';
+                textArea.style.cursor = 'move';
+                box.style.cursor = 'move';
+                box.style.border = 'none';
+                
+                const handles = box.querySelectorAll('.ui-resizable-handle');
+                handles.forEach(handle => {
+                    handle.style.display = 'none';
+                });
+            }
+        });
+
+
         if (isSpoidMode) {
             const x = event.offsetX;
             const y = event.offsetY;
@@ -360,9 +412,15 @@ window.onload = function () {
                 console.error('색상을 가져오는데 실패했습니다:', error);
             }
         } else if (isTextMode) {
-            console.log(event.clientX, event.clientY, ': event.client 11')
-            addInput(event.clientX, event.clientY);
+            if (canCreateNewText) {  // 두 번째 클릭일 때
+                console.log(event.clientX, event.clientY, ': event.client 11')
+                addInput(event.clientX, event.clientY);
+                canCreateNewText = false;  // 텍스트 생성 후 플래그 리셋
+            } else {  // 첫 번째 클릭일 때
+                canCreateNewText = true;  // 다음 클릭에서 새 텍스트 생성 가능하도록 설정
+            }
         }
+        isEditingText = false;  // 편집 모드 해제
     });
 
 
