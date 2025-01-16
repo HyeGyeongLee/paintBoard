@@ -59,6 +59,7 @@ window.onload = function () {
 
     function addInput(x, y) {
         var input = document.createElement('input');
+        let isRemoved = false;
 
         input.type = 'text';
         input.style.position = 'fixed';
@@ -69,22 +70,31 @@ window.onload = function () {
         input.canvasX = x - myCanvas.getBoundingClientRect().left;
         input.canvasY = y - myCanvas.getBoundingClientRect().top;
 
-        input.onkeydown = handleEnter;
+        input.onkeydown = function(e) {
+            var keyCode = e.keyCode;
+            if (keyCode === 13 && !isRemoved) {
+                isRemoved = true;
+                drawText(this.value, this.canvasX, this.canvasY);
+                document.body.removeChild(this);
+                isTextMode = false;
+            }
+        };
+        
+        input.onblur = function() {
+            if (!isRemoved) {
+                isRemoved = true;
+                drawText(this.value, this.canvasX, this.canvasY);
+                document.body.removeChild(this);
+                isTextMode = false;
+            }
+        };
+    
 
         document.body.appendChild(input);
 
         input.focus();
 
-        isTextMode = true;
-      }
-
-    function handleEnter(e) {
-        var keyCode = e.keyCode;
-        if (keyCode === 13) {
-            drawText(this.value, this.canvasX, this.canvasY);
-          document.body.removeChild(this);
-          isTextMode = false;
-        }
+        isTextMode = false;
       }
 
     function drawText(txt, x, y) {
