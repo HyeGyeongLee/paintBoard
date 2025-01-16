@@ -45,6 +45,16 @@ window.onload = function () {
         painting = false;
     }
 
+    function colorPicker() {
+        const backgroundColorPicker = document.getElementById('backgroundColorPicker');
+        // const content = document.getElementById('content');
+
+        backgroundColorPicker.addEventListener('input', () => {
+            const selectedColor = backgroundColorPicker.value;
+            // content.style.backgroundColor = selectedColor;
+        });
+    }
+
     document.body.addEventListener('click', function (event) {
         console.log(event.target)
 
