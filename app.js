@@ -58,52 +58,231 @@ window.onload = function () {
     }
 
     function addInput(x, y) {
-        var input = document.createElement('input');
-        let isRemoved = false;
-
-        input.type = 'text';
-        input.style.position = 'fixed';
-        input.style.left = x + 'px';
-        input.style.top = y + 'px';
-
-        // 클릭한 캔버스 좌표 저장
-        input.canvasX = x - myCanvas.getBoundingClientRect().left;
-        input.canvasY = y - myCanvas.getBoundingClientRect().top;
-
-        input.onkeydown = function(e) {
-            var keyCode = e.keyCode;
-            if (keyCode === 13 && !isRemoved) {
-                isRemoved = true;
-                drawText(this.value, this.canvasX, this.canvasY);
-                document.body.removeChild(this);
-                isTextMode = false;
-            }
-        };
-        
-        input.onblur = function() {
-            if (!isRemoved) {
-                isRemoved = true;
-                drawText(this.value, this.canvasX, this.canvasY);
-                document.body.removeChild(this);
-                isTextMode = false;
-            }
-        };
+        // 컨테이너 생성
+        const container = document.createElement('div');
+        container.className = 'resizable draggable';
+        container.style.position = 'absolute';
+        container.style.left = x + 'px';
+        container.style.top = y + 'px';
+        container.style.cursor = 'move';
+        container.style.border = '1px dashed #000000';
+        container.style.minHeight = '50px';
+        container.style.minWidth = '100px';
     
-
-        document.body.appendChild(input);
-
-        input.focus();
-
-        isTextMode = false;
-      }
-
-    function drawText(txt, x, y) {
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
-        ctx.font = font;
-        ctx.fillStyle = "black";
-        ctx.fillText(txt, x, y);
-      }
+        // 텍스트 영역 생성
+        const textArea = document.createElement('div');
+        textArea.contentEditable = 'true';
+        textArea.innerHTML = 'Text here';
+        textArea.style.width = '100%';
+        textArea.style.height = '100%';
+        textArea.style.position = 'absolute';
+        textArea.style.boxSizing = 'border-box';
+        container.appendChild(textArea);
+    
+        // 리사이즈 핸들 생성
+        const positions = ['nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'];
+        positions.forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = `ui-resizable-handle ui-resizable-${pos}`;
+            handle.style.position = 'absolute';
+            handle.style.width = '10px';
+            handle.style.height = '10px';
+            handle.style.backgroundColor = '#ffffff';
+            handle.style.border = '1px solid #000000';
+    
+            // 핸들 위치 설정
+            switch(pos) {
+                case 'nw':
+                    handle.style.left = '-5px';
+                    handle.style.top = '-5px';
+                    handle.style.cursor = 'nw-resize';
+                    break;
+                case 'ne':
+                    handle.style.right = '-5px';
+                    handle.style.top = '-5px';
+                    handle.style.cursor = 'ne-resize';
+                    break;
+                case 'sw':
+                    handle.style.left = '-5px';
+                    handle.style.bottom = '-5px';
+                    handle.style.cursor = 'sw-resize';
+                    break;
+                case 'se':
+                    handle.style.right = '-5px';
+                    handle.style.bottom = '-5px';
+                    handle.style.cursor = 'se-resize';
+                    break;
+                case 'n':
+                    handle.style.left = '50%';
+                    handle.style.top = '-5px';
+                    handle.style.cursor = 'n-resize';
+                    break;
+                case 's':
+                    handle.style.left = '50%';
+                    handle.style.bottom = '-5px';
+                    handle.style.cursor = 's-resize';
+                    break;
+                case 'e':
+                    handle.style.right = '-5px';
+                    handle.style.top = 'calc(50% - 5px)';
+                    handle.style.cursor = 'e-resize';
+                    break;
+                case 'w':
+                    handle.style.left = '-5px';
+                    handle.style.top = 'calc(50% - 5px)';
+                    handle.style.cursor = 'w-resize';
+                    break;
+            }
+            container.appendChild(handle);
+        });
+    
+        // 드래그 기능 구현
+        let isDragging = false;
+        let currentX;
+        let currentY;
+        let initialX;
+        let initialY;
+    
+        container.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', dragEnd);
+    
+        function dragStart(e) {
+            if (e.target === textArea) return;
+            
+            initialX = e.clientX - container.offsetLeft;
+            initialY = e.clientY - container.offsetTop;
+            
+            isDragging = true;
+        }
+    
+        function drag(e) {
+            if (!isDragging) return;
+    
+            e.preventDefault();
+            
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+    
+            container.style.left = currentX + 'px';
+            container.style.top = currentY + 'px';
+        }
+    
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            isDragging = false;
+        }
+    
+        // 리사이즈 기능 구현
+        let isResizing = false;
+        let currentHandle = null;
+        let originalWidth;
+        let originalHeight;
+        let originalX;
+        let originalY;
+        let originalMouseX;
+        let originalMouseY;
+    
+        const handles = container.querySelectorAll('.ui-resizable-handle');
+        handles.forEach(handle => {
+            handle.addEventListener('mousedown', resizeStart);
+        });
+    
+        document.addEventListener('mousemove', resize);
+        document.addEventListener('mouseup', resizeEnd);
+    
+        function resizeStart(e) {
+            isResizing = true;
+            currentHandle = e.target;
+            
+            originalWidth = container.offsetWidth;
+            originalHeight = container.offsetHeight;
+            originalX = container.offsetLeft;
+            originalY = container.offsetTop;
+            originalMouseX = e.clientX;
+            originalMouseY = e.clientY;
+    
+            e.stopPropagation();
+        }
+    
+        function resize(e) {
+            if (!isResizing) return;
+    
+            const dx = e.clientX - originalMouseX;
+            const dy = e.clientY - originalMouseY;
+            
+            if (currentHandle.classList.contains('ui-resizable-se')) {
+                container.style.width = originalWidth + dx + 'px';
+                container.style.height = originalHeight + dy + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-sw')) {
+                container.style.width = originalWidth - dx + 'px';
+                container.style.height = originalHeight + dy + 'px';
+                container.style.left = originalX + dx + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-ne')) {
+                container.style.width = originalWidth + dx + 'px';
+                container.style.height = originalHeight - dy + 'px';
+                container.style.top = originalY + dy + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-nw')) {
+                container.style.width = originalWidth - dx + 'px';
+                container.style.height = originalHeight - dy + 'px';
+                container.style.top = originalY + dy + 'px';
+                container.style.left = originalX + dx + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-n')) {
+                container.style.height = originalHeight - dy + 'px';
+                container.style.top = originalY + dy + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-s')) {
+                container.style.height = originalHeight + dy + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-e')) {
+                container.style.width = originalWidth + dx + 'px';
+            } else if (currentHandle.classList.contains('ui-resizable-w')) {
+                container.style.width = originalWidth - dx + 'px';
+                container.style.left = originalX + dx + 'px';
+            }
+        }
+    
+        function resizeEnd() {
+            isResizing = false;
+            currentHandle = null;
+        }
+    
+        // 텍스트 편집 기능
+        textArea.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.contentEditable = 'true';
+            this.style.cursor = 'text';
+            container.style.cursor = 'text';
+        });
+    
+        textArea.addEventListener('blur', function() {
+            this.contentEditable = 'false';
+            this.style.cursor = 'move';
+            container.style.cursor = 'move';
+        });
+    
+        // 텍스트 내용이 변경될 때마다 크기 조절
+        let observer = new MutationObserver(function(mutations) {
+            // 컨테이너 크기를 텍스트 영역에 맞게 조절
+            container.style.width = textArea.scrollWidth + 'px';
+            container.style.height = textArea.scrollHeight + 'px';
+        });
+    
+        // 텍스트 영역의 변화 감지 설정
+        observer.observe(textArea, {
+            attributes: true,
+            childList: true,
+            characterData: true,
+            subtree: true
+        });
+    
+        // 입력 이벤트에도 대응
+        textArea.addEventListener('input', function() {
+            container.style.width = textArea.scrollWidth + 'px';
+            container.style.height = textArea.scrollHeight + 'px';
+        });
+    
+        document.body.appendChild(container);
+    }
 
     document.body.addEventListener('click', function (event) {
         console.log(event.target)

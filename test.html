@@ -1,0 +1,40 @@
+<html>
+    <body>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/3.3.2/fabric.min.js"></script>
+            <canvas id="mycanvas" width="400" height="400"></canvas>
+        <script>
+            var canvas = new fabric.Canvas('mycanvas');
+
+    let textbox = new fabric.Textbox("Sample text", {
+    left: 100,
+    top: 100
+    });
+
+    let lastHeight;
+
+    const updateTextSize = () => {	
+
+    const controlPoint = textbox.__corner;
+
+    //mr and ml are the only controlPoints that dont modify textbox height
+    if( controlPoint && controlPoint != "mr" && controlPoint != "ml"){
+        lastHeight =  textbox.height * textbox.scaleY;			
+    }
+
+    textbox.set({		
+        height: lastHeight || textbox.height,
+        scaleY:1				
+    });
+    
+    canvas.renderAll();
+    };
+            
+        
+    textbox.on('scaling', updateTextSize );
+    textbox.on('editing:entered', updateTextSize);
+    canvas.on('text:changed', updateTextSize);
+    
+    canvas.add(textbox);
+        </script>
+    </body>
+</html>
