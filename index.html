@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge,chrome=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Image Editor Demo</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script type="text/javascript" src="app.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h1 class="text-3xl font-bold underline">
+                그림판 만들기~
+            </h1>
+
+            <div class="flex gap-20">
+                <div>
+                    <button id="openFile" type="button" class="bg-gray-400 px-2 rounded-sm">불러오기</button>
+                </div>
+                <div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">잘라내기</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">복사</button>
+                    </div>
+                </div>
+                <div class="flex">
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">선택</button>
+                    </div>
+                    <div>
+                        <div><button type="button" class="bg-gray-400 px-2 rounded-sm">자르기</button></div>
+                        <div><button type="button" class="bg-gray-400 px-2 rounded-sm">크기조정</button></div>
+                        <div><button type="button" class="bg-gray-400 px-2 rounded-sm">회전</button></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3">
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">연필</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">색 채우기</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">텍스트</button>
+                    </div>
+                    <div>
+                        <button id="erase" type="button" class="bg-gray-400 px-2 rounded-sm">지우개</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">스포이드</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">돋보기</button>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">실선</button>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">동그라미</button>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">네모</button>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">세모</button>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">얇음</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">중간</button>
+                    </div>
+                    <div>
+                        <button type="button" class="bg-gray-400 px-2 rounded-sm">두꺼움</button>
+                    </div>
+                </div>
+                <div  class="bg-gray-400 px-2 rounded-sm">
+                    색
+                </div>
+            </div>
+            <div class="controls__color flex justify-center gap-2 mt-12" id="jsColors">
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#000000" style="background: black;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#FFFFFF" style="background: white;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#FF0000" style="background: red;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#FFA500" style="background: orange;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#FFFF00" style="background: yellow;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#008000" style="background: green;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#0000FF" style="background: blue;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#000080" style="background: navy;"></div>
+                <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#800080" style="background: purple;"></div>
+            </div>
+            <div>
+                <canvas id="jsCanvas" class="canvas w-[1200px] h-[500px] shadow-xl rounded-lg mt-12 m-auto"></canvas>
+            </div>
+        </div>
+    </body>
+</html>
