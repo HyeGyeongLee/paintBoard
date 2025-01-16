@@ -8,8 +8,10 @@ window.onload = function () {
     ctx.lineWidth = 2.5;
 
     let painting = false;
-    
-    
+    let isSpoidMode = false;
+    let isTextMode = false;
+    const font = '14px sans-serif';
+
     function removeCanvasListeners() {
         myCanvas.removeEventListener("mousemove", onMouseMove);
         myCanvas.removeEventListener("mousedown", onMouseDown);
@@ -20,7 +22,7 @@ window.onload = function () {
     function initCanvasListeners() {
         // 지우개 리셋..
         ctx.globalCompositeOperation = "source-over";
-        
+
         myCanvas.addEventListener("mousemove", onMouseMove);
         myCanvas.addEventListener("mousedown", onMouseDown);
         myCanvas.addEventListener("mouseup", stopPainting);
@@ -55,7 +57,43 @@ window.onload = function () {
         return ((r << 16) | (g << 8) | b).toString(16);
     }
 
-    let isSpoidMode = false;
+    function addInput(x, y) {
+        var input = document.createElement('input');
+
+        input.type = 'text';
+        input.style.position = 'fixed';
+        input.style.left = x + 'px';
+        input.style.top = y + 'px';
+
+        // 클릭한 캔버스 좌표 저장
+        input.canvasX = x - myCanvas.getBoundingClientRect().left;
+        input.canvasY = y - myCanvas.getBoundingClientRect().top;
+
+        input.onkeydown = handleEnter;
+
+        document.body.appendChild(input);
+
+        input.focus();
+
+        isTextMode = true;
+      }
+
+    function handleEnter(e) {
+        var keyCode = e.keyCode;
+        if (keyCode === 13) {
+            drawText(this.value, this.canvasX, this.canvasY);
+          document.body.removeChild(this);
+          isTextMode = false;
+        }
+      }
+
+    function drawText(txt, x, y) {
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'left';
+        ctx.font = font;
+        ctx.fillStyle = "black";
+        ctx.fillText(txt, x, y);
+      }
 
     document.body.addEventListener('click', function (event) {
         console.log(event.target)
@@ -105,6 +143,9 @@ window.onload = function () {
             case 'pencilButton':
                     initCanvasListeners();
                 break;
+            case 'textButton':
+                isTextMode = true;
+                break;
         } 
         
     });
@@ -129,6 +170,9 @@ window.onload = function () {
             } catch(error) {
                 console.error('색상을 가져오는데 실패했습니다:', error);
             }
+        } else if (isTextMode) {
+            console.log(event.clientX, event.clientY, ': event.client 11')
+            addInput(event.clientX, event.clientY);
         }
     });
 
