@@ -6,10 +6,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Image Editor Demo</title>
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/konva@9/konva.min.js"></script>
         <script type="text/javascript" src="app.js"></script>
     </head>
     <body>
-        <div class="container">
+        <div>
             <h1 class="text-3xl font-bold underline">
                 그림판 만들기~
             </h1>
@@ -91,8 +92,8 @@
                 <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#000080" style="background: navy;"></div>
                 <div id="controls__color" class="controls__color w-8 h-8 rounded-full shadow-xl cursor-pointer" data-color="#800080" style="background: purple;"></div>
             </div>
-            <div>
-                <canvas id="jsCanvas" class="canvas w-[1200px] h-[500px] shadow-xl rounded-lg mt-12 m-auto"></canvas>
+            <div id="container" class="w-[1200px] h-[500px] m-auto">
+                <canvas id="jsCanvas" class="canvas w-[1200px] h-[500px] shadow-xl rounded-lg mt-12 border"></canvas>
             </div>
         </div>
     </body>
