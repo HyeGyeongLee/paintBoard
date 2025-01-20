@@ -281,10 +281,68 @@ window.onload = function () {
           });
         });
     }
-    
+
+  let box = null; 
+
+  // 초기 box 생성 함수
+  function createBox(x = 0, y = 0) {
+    box = new Konva.Rect({
+        x: x,
+        y: y,
+        stroke: 'black',
+        strokeWidth: 4,
+        draggable: true,
+        width: 400,
+        height: 300,
+    });
+    layer.add(box);
+    layer.batchDraw();
+  }
+
+  function cursorMouseenter() {
+        if (!box) {
+            createBox();
+        }
+  }
+
+  function cursorMouseleave() {
+        if (box) {
+          box.destroy();
+          box = null;
+          layer.batchDraw();
+      }
+  }
+
+  function cursorMousemove(e) {
+    if (!box) return;
+
+    let mouseX = e.offsetX;
+    let mouseY = e.offsetY;
+
+    // Rect 위치 업데이트
+    box.position({
+        x: mouseX - 200,
+        y: mouseY -150
+    });
+    layer.batchDraw();
+  }
+
+  function makeCursor() {
+    // 함수 호출 시 바로 box 생성
+    createBox();
+
+    myCanvas.addEventListener("mouseenter", cursorMouseenter);
+    myCanvas.addEventListener("mouseleave", cursorMouseleave);
+    myCanvas.addEventListener("mousemove", cursorMousemove);
+}
+
+function destroyMakeCursor() {  
+  myCanvas.removeEventListener("mouseenter", cursorMouseenter);
+  myCanvas.removeEventListener("mouseleave", cursorMouseleave);
+  myCanvas.removeEventListener("mousemove", cursorMousemove);
+}
 
 
-    const konvaContainer = document.getElementById('konvaContainer');
     document.addEventListener('click', function (event) {
         const colorElement = event.target.closest('.controls__color');
         const backgroundColorPicker = document.getElementById('backgroundColorPicker');
@@ -309,6 +367,7 @@ window.onload = function () {
                         }
                         ctx.strokeStyle = backgroundColorPicker.value;
                         initCanvasListeners();
+                        destroyMakeCursor();
                 break;
             case 'eraseButton':
                     Mode = 'eraselMode';
@@ -316,6 +375,7 @@ window.onload = function () {
                     ctx.strokeStyle = "#FFFFFF";
                     removeCanvasListeners();
                     initCanvasListeners();
+                    destroyMakeCursor();
                 break;
             case 'fillSytleButton':
                     ctx.fillStyle = backgroundColorPicker.value;
@@ -325,7 +385,7 @@ window.onload = function () {
                     Mode = 'isSpoidMode';  // 스포이드 모드 활성화
                     togglePointerEvents(Mode);
                     removeCanvasListeners();  // 그리기 이벤트 제거
-
+                    destroyMakeCursor();
                 break;
             case 'backgroundColorPicker':
                     backgroundColorPicker.addEventListener('change', function(event){
@@ -340,9 +400,17 @@ window.onload = function () {
                     Mode = 'textMode';
                     togglePointerEvents(Mode);
                     removeCanvasListeners();
+                    destroyMakeCursor();
                     hideTextTransformer = true; // 텍스트 모드 시작시 초기화
                     break;
-                break;
+            case 'magnifier':
+              Mode = 'textMagnifier';
+              togglePointerEvents(Mode);
+
+              console.log(Mode, ': Mode')
+                    makeCursor();
+                    removeCanvasListeners();
+                    break;
         } 
         
     });
