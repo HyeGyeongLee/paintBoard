@@ -8,9 +8,9 @@ window.onload = function () {
     ctx.lineWidth = 2.5;
 
     let painting = false;
-    let isSpoidMode = false;
-    let isTextMode = false;
-    let isTextTransformer = true;
+    // let isSpoidMode = false;
+    let Mode = 'pencilMode';
+    let hideTextTransformer = false;
     const font = '14px sans-serif';
 
     function removeCanvasListeners() {
@@ -63,80 +63,95 @@ window.onload = function () {
     let stage = null;
     let layer = null;
     var tr = null;
+    
+    const canvas = document.getElementById('jsCanvas');
+    const container = document.getElementById('container');
 
+    // stage가 없을 때만 새로 생성
+    if (!stage) {
+      const konvaContainer = document.createElement('div');
+      konvaContainer.id = 'konvaContainer';
+      konvaContainer.style.position = 'absolute';
+      konvaContainer.style.top = canvas.offsetTop + 'px';
+      konvaContainer.style.left = canvas.offsetLeft + 'px';
+      konvaContainer.style.width = canvas.width + 'px';
+      konvaContainer.style.height = canvas.height + 'px';
+      container.appendChild(konvaContainer);
+
+      stage = new Konva.Stage({
+          container: 'konvaContainer',
+          width: 1200,
+          height: 500,
+      });
+
+      layer = new Konva.Layer();
+      stage.add(layer);
+
+      // konvaContainer.style.pointerEvents = 'none';
+  }
+
+  function togglePointerEvents(mode) {
+    console.log(mode, ':: mode')
+    const konvaContainer = document.getElementById('konvaContainer');
+    if (mode === 'textMode') {
+        konvaContainer.style.pointerEvents = 'auto';  // 텍스트 모드일 때는 활성화
+    } else {
+        konvaContainer.style.pointerEvents = 'none';  // 다른 모드일 때는 비활성화
+    }
+}
     function addInput(event) {
-        const canvas = document.getElementById('jsCanvas');
-        const container = document.getElementById('container');
+        
+      var newTextNode = new Konva.Text({
+        x: event.offsetX,
+        y: event.offsetY,
+        fontSize: 30,
+        text: '텍스트를 입력하세요.',
+        draggable: true,
+      });
+      layer.add(newTextNode);
 
-        // stage가 없을 때만 새로 생성
-        if (!stage) {
-            const konvaContainer = document.createElement('div');
-            konvaContainer.id = 'konvaContainer';
-            konvaContainer.style.position = 'absolute';
-            konvaContainer.style.top = canvas.offsetTop + 'px';
-            konvaContainer.style.left = canvas.offsetLeft + 'px';
-            konvaContainer.style.width = canvas.width + 'px';
-            konvaContainer.style.height = canvas.height + 'px';
-            container.appendChild(konvaContainer);
 
-            stage = new Konva.Stage({
-                container: 'konvaContainer',
-                width: 1200,
-                height: 500,
-            });
+      // 배열에 추가
+      textNodes.push(newTextNode);
 
-            layer = new Konva.Layer();
-            stage.add(layer);
-        }
+      // transformer 함수 호출 (텍스트 편집 기능)
+      transformer(newTextNode, stage);
 
-        // 새로운 텍스트 노드 생성
-        var newTextNode = new Konva.Text({
-            text: 'Some text here',
-            x: event.offsetX,
-            y: event.offsetY,
-            fontSize: 20,
-            draggable: true,
-            width: 200,
-        });
+      layer.batchDraw();
 
-        layer.add(newTextNode);
+    }
 
-        // 새로운 transformer 생성
+    function transformer(textNode, stage) {  
+
         var newTr = new Konva.Transformer({
-            node: newTextNode,
-            enabledAnchors: ['middle-left', 'middle-right'],
-            boundBoxFunc: function (oldBox, newBox) {
-                newBox.width = Math.max(30, newBox.width);
-                return newBox;
-            },
+          nodes: [textNode],
+          centeredScaling: true,
         });
-
         layer.add(newTr);
 
-        // 배열에 추가
-        textNodes.push(newTextNode);
         transformers.push(newTr);
 
         // 텍스트 변환 이벤트
-        newTextNode.on('transform', function () {
+          textNode.on('transform', function () {
             this.setAttrs({
                 width: this.width() * this.scaleX(),
                 scaleX: 1,
             });
         });
 
-        // transformer 함수 호출 (텍스트 편집 기능)
-        transformer(newTextNode, newTr, stage);
+      //     // 텍스트 클릭 이벤트 추가
+      //   textNode.on('click', function() {
+      //     // 모든 transformer 숨기기
+      //     transformers.forEach(tr => tr.hide());
+      //     // 현재 텍스트의 transformer만 보이기
+      //     newTr.show();
+      //     layer.batchDraw();
+      // });
 
-        layer.batchDraw();
-
-    }
-
-    function transformer(textNode, tr, stage) {  
         textNode.on('dblclick dbltap', () => {
           // hide text node and transformer:
           textNode.hide();
-          tr.hide();
+          newTr.hide();
   
           // create textarea over canvas with absolute position
           // first we need to find position for textarea
@@ -207,8 +222,8 @@ window.onload = function () {
             textarea.parentNode.removeChild(textarea);
             window.removeEventListener('click', handleOutsideClick);
             textNode.show();
-            tr.show();
-            tr.forceUpdate();
+            newTr.show();
+            newTr.forceUpdate();
           }
   
           function setTextareaWidth(newWidth) {
@@ -269,24 +284,15 @@ window.onload = function () {
     
 
 
+    const konvaContainer = document.getElementById('konvaContainer');
     document.addEventListener('click', function (event) {
-        console.log(isTextTransformer, ': isTextTransformer')
         const colorElement = event.target.closest('.controls__color');
         const backgroundColorPicker = document.getElementById('backgroundColorPicker');
-
-
-        if(isTextMode) {
-            isTextTransformer = !isTextTransformer;
-
-            if(isTextTransformer) {
-                transformers.forEach(tr => tr.hide());
-            } else {
-                addInput(event);
-            }
-        }
-
         switch(event.target.id) {
+            case 'pencilButton':
             case 'controls__color' :
+                      Mode = 'pencilMode';
+                      togglePointerEvents(Mode);
                     if (colorElement) {
                         const color = colorElement.dataset.color;
             
@@ -299,14 +305,16 @@ window.onload = function () {
 
                             //색 바꾸기&드레그 드로잉 출력
                             ctx.strokeStyle = color;
-                            initCanvasListeners();
+                          }
                         }
-                    }
+                        ctx.strokeStyle = backgroundColorPicker.value;
+                        initCanvasListeners();
                 break;
             case 'eraseButton':
-                    removeCanvasListeners();
+                    Mode = 'eraselMode';
                     ctx.globalCompositeOperation = "destination-out";  
                     ctx.strokeStyle = "#FFFFFF";
+                    removeCanvasListeners();
                     initCanvasListeners();
                 break;
             case 'fillSytleButton':
@@ -314,11 +322,11 @@ window.onload = function () {
                     ctx.fillRect(0,0,1200,500);
                 break;
             case 'spoidButton':
-                    isSpoidMode = true;  // 스포이드 모드 활성화
+                    Mode = 'isSpoidMode';  // 스포이드 모드 활성화
+                    togglePointerEvents(Mode);
                     removeCanvasListeners();  // 그리기 이벤트 제거
 
                 break;
-            case 'pencilButton':
             case 'backgroundColorPicker':
                     backgroundColorPicker.addEventListener('change', function(event){
                         ctx.strokeStyle = event.target.value;
@@ -329,16 +337,55 @@ window.onload = function () {
                     initCanvasListeners();
                 break;
             case 'textButton':
-                isTextMode = true;
+                    Mode = 'textMode';
+                    togglePointerEvents(Mode);
+                    removeCanvasListeners();
+                    hideTextTransformer = true; // 텍스트 모드 시작시 초기화
+                    break;
                 break;
         } 
         
     });
 
+    //canva canvas내 클릭시
+    stage.on('click', (e) => {
+      if (Mode === 'textMode') {
+          const pos = stage.getPointerPosition();
+          const shape = stage.getIntersection(pos);
+          
+          if (hideTextTransformer) {
+              if (!shape || !(shape instanceof Konva.Text)) {
+                  // stage의 좌표를 event 좌표로 변환
+                  const evt = {
+                      offsetX: pos.x,
+                      offsetY: pos.y
+                  };
+                  addInput(evt);
+              } else {
+                  const tr = transformers[textNodes.indexOf(shape)];
+                  if (tr) {
+                      tr.show();
+                      layer.batchDraw();
+                  }
+              }
+              hideTextTransformer = false;
+          } else if (!hideTextTransformer) {
+              layer.find('Transformer').forEach((tr) => {
+                  tr.hide();
+              });
+              layer.batchDraw();
+              hideTextTransformer = true;
+          }
+      }
+  });
+  
 
     // 캔버스 내에서 클릭 시
     myCanvas.addEventListener('click', function(event) {
-            if (isSpoidMode) {
+      console.log(Mode, ':::: Mode canvas')
+      console.log(hideTextTransformer, ':::: hideTextTransformer')
+
+            if (Mode === 'isSpoidMode') {
                 const x = event.offsetX;
                 const y = event.offsetY;
                 
@@ -349,14 +396,12 @@ window.onload = function () {
                     backgroundColorPicker.value = hex;
                     
                     // 색상 선택 후 스포이드 모드 해제
-                    isSpoidMode = false;
+                    Mode = 'pencilMode';
                     ctx.strokeStyle = hex;
                     initCanvasListeners();
                 } catch(error) {
                     console.error('색상을 가져오는데 실패했습니다:', error);
                 }
-            } else if (isTextMode && isTextTransformer) {
-                addInput(event);
             }
     });
 
