@@ -290,7 +290,7 @@ window.onload = function () {
         x: x,
         y: y,
         stroke: 'black',
-        strokeWidth: 4,
+        strokeWidth: 2,
         draggable: true,
         width: 400,
         height: 300,
@@ -404,7 +404,7 @@ function destroyMakeCursor() {
                     hideTextTransformer = true; // 텍스트 모드 시작시 초기화
                     break;
             case 'magnifier':
-              Mode = 'textMagnifier';
+              Mode = 'Magnifier';
               togglePointerEvents(Mode);
 
               console.log(Mode, ': Mode')
@@ -451,9 +451,9 @@ function destroyMakeCursor() {
     // 캔버스 내에서 클릭 시
     myCanvas.addEventListener('click', function(event) {
       console.log(Mode, ':::: Mode canvas')
-      console.log(hideTextTransformer, ':::: hideTextTransformer')
 
-            if (Mode === 'isSpoidMode') {
+            switch(Mode) {
+              case 'isSpoidMode' :
                 const x = event.offsetX;
                 const y = event.offsetY;
                 
@@ -470,6 +470,38 @@ function destroyMakeCursor() {
                 } catch(error) {
                     console.error('색상을 가져오는데 실패했습니다:', error);
                 }
+                break;
+              
+              case 'Magnifier' :
+                const scale = 2; // 고정 확대 비율
+                const mousePosX = event.clientX - canvas.getBoundingClientRect().left;
+                const mousePosY = event.clientY - canvas.getBoundingClientRect().top;
+        
+                // 현재 캔버스 내용을 임시 캔버스에 저장
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = myCanvas.width;
+                tempCanvas.height = myCanvas.height;
+                tempCtx.drawImage(myCanvas, 0, 0);
+        
+                // 메인 캔버스 클리어
+                ctx.clearRect(0, 0, myCanvas.width, myCanvas.height);
+        
+                // 변환 적용
+                ctx.save();
+                
+                // 마우스 위치를 중심으로 확대
+                ctx.translate(mousePosX, mousePosY);
+                ctx.scale(scale, scale);
+                ctx.translate(-mousePosX, -mousePosY);
+                
+                // 저장해둔 이미지 그리기
+                ctx.drawImage(tempCanvas, 0, 0);
+                
+                ctx.restore();
+          
+          
+                break;
             }
     });
 
