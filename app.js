@@ -406,21 +406,26 @@ function destroyMakeCursor() {
             case 'magnifier':
               Mode = 'Magnifier';
               togglePointerEvents(Mode);
-
-              console.log(Mode, ': Mode')
                     makeCursor();
                     removeCanvasListeners();
                     break;
+            case 'circleButton':
+              Mode = 'circle';
+              togglePointerEvents(Mode);
+              removeCanvasListeners();
+
+              break;
         } 
         
     });
 
-    //canva canvas내 클릭시
+    //Konva canvas내 클릭시
     stage.on('click', (e) => {
-      if (Mode === 'textMode') {
-          const pos = stage.getPointerPosition();
-          const shape = stage.getIntersection(pos);
-          
+      const pos = stage.getPointerPosition();
+      const shape = stage.getIntersection(pos);
+
+      switch(Mode) {
+        case 'textMode' :
           if (hideTextTransformer) {
               if (!shape || !(shape instanceof Konva.Text)) {
                   // stage의 좌표를 event 좌표로 변환
@@ -444,6 +449,7 @@ function destroyMakeCursor() {
               layer.batchDraw();
               hideTextTransformer = true;
           }
+          break;
       }
   });
   
@@ -502,6 +508,20 @@ function destroyMakeCursor() {
           
           
                 break;
+
+                case 'circle' :
+                  console.log('circle 아닌가?')
+                  var circle = new Konva.Circle({
+                    x: event.offsetX,
+                    y: event.offsetY,
+                    fill: 'red',
+                    radius: 20,
+                    width: 40,
+                    height: 30,
+                  });
+                layer.add(circle);
+                layer.batchDraw();
+                  break;
             }
     });
 
