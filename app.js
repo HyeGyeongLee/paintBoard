@@ -373,9 +373,27 @@ function makeCompletedCircle() {
   const tr = new Konva.Transformer({
     nodes: [circle],
     keepRatio: true,
-    enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
   });
 
+   // transformer 내부 클릭 시 이벤트 중지
+   tr.on('mousedown', function(e) {
+    e.cancelBubble = true;
+  });
+
+  circle.on('transformstart', function() {
+    tr.show();
+  });
+
+  circle.on('dragstart', function() {
+    tr.show();
+  });
+
+  circle.on('dragend', function() {
+    if (!tr.isTransforming()) {
+      tr.hide();
+    }
+  });
+  
   layer.add(circle);
   layer.add(tr);
   layer.batchDraw();
@@ -499,9 +517,7 @@ function makeCompletedCircle() {
               const pos = stage.getPointerPosition();
               const shape = stage.getIntersection(pos);
 
-              // 모든 transformer 숨기기
               if (shape instanceof Konva.Ellipse) {
-                // 기존 도형 클릭
                 layer.find('Transformer').forEach((tr) => {
                   if (tr.nodes()[0] === shape) {
                     isShape = false;
@@ -512,9 +528,11 @@ function makeCompletedCircle() {
                   }
                 });
                 layer.batchDraw();
-              } else {
+              } else {                
                 layer.find('Transformer').forEach(tr => tr.hide());
               }
+              console.log('도형클릭 5');
+
              });
 
              stage.on('mousemove', (e) => {
@@ -559,12 +577,12 @@ function makeCompletedCircle() {
               currentCircle = null;
               
               // 새로 생성된 도형의 transformer 보이기
-              layer.find('Transformer').forEach((tr) => {
-                if (tr.nodes()[0] === circle) {
-                  tr.show();
-                }
-              });
-              layer.batchDraw();
+              // layer.find('Transformer').forEach((tr) => {
+              //   if (tr.nodes()[0] === circle) {
+              //     tr.show();
+              //   }
+              // });
+              // layer.batchDraw();
              });
             
             break;
