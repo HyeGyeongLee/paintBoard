@@ -93,7 +93,7 @@ window.onload = function () {
 function togglePointerEvents(mode) {
   console.log(mode, ':: mode')
   const konvaContainer = document.getElementById('konvaContainer');
-  if (mode === 'textMode' || mode === 'circle') {
+  if (mode === 'textMode' || mode === 'circle' || mode === 'rect') {
       konvaContainer.style.pointerEvents = 'auto';  // 텍스트 모드일 때는 활성화
   } else {
       konvaContainer.style.pointerEvents = 'none';  // 다른 모드일 때는 비활성화
@@ -346,17 +346,17 @@ let isShape = false;
 let circle = null;
 
 function makeCircle() {
-circle = new Konva.Ellipse({
-  fill: 'rgba(0, 0, 255, 0.5)', 
-  radiusX: 20,
-  radiusY: 20,
-  stroke: 'black',
-  strokeWidth: 4,
-  draggable: true
-});
+  circle = new Konva.Ellipse({
+    fill: 'rgba(0, 0, 255, 0.5)', 
+    radiusX: 20,
+    radiusY: 20,
+    stroke: 'black',
+    strokeWidth: 4,
+    draggable: true
+  });
 
-layer.add(circle);
-layer.batchDraw();
+  layer.add(circle);
+  layer.batchDraw();
 }
 
 function makeCompletedCircle() {
@@ -395,6 +395,62 @@ function makeCompletedCircle() {
   // });
   
   layer.add(circle);
+  layer.add(tr);
+  layer.batchDraw();
+}
+
+let rect = null;
+
+function makeRect() {
+  rect = new Konva.Rect({
+    fill: 'rgba(0, 0, 255, 0.5)', 
+    x: 20,
+    y: 20,
+    stroke: 'black',
+    strokeWidth: 4,
+    draggable: true
+  });
+
+  layer.add(rect);
+  layer.batchDraw();
+}
+
+function makeCompletedRect() {
+  rect = new Konva.Rect({
+    // fill: 'red',
+    x: 20,
+    y: 20,
+    stroke: 'red',
+    strokeWidth: 4,
+    draggable: true
+  });
+
+  // Transformer 추가
+  const tr = new Konva.Transformer({
+    nodes: [rect],
+    keepRatio: true,
+  });
+
+   // transformer 내부 클릭 시 이벤트 중지
+   tr.on('mousedown', function(e) {
+    e.cancelBubble = true;
+  });
+
+  // circle.on('transformstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragend', function() {
+  //   if (!tr.isTransforming()) {
+  //     tr.hide();
+  //   }
+  // });
+  
+  layer.add(rect);
   layer.add(tr);
   layer.batchDraw();
 }
@@ -504,7 +560,6 @@ function makeCompletedCircle() {
             let startPos = null;
             let currentCircle = null;
             let isMouseDown = false;
-            let shapeTransfomer = false;
             
             stage.on('mousedown', (e) => {
               console.log('mousedown')
@@ -583,6 +638,91 @@ function makeCompletedCircle() {
               //   }
               // });
               // layer.batchDraw();
+             });
+            
+            break;
+
+          case 'rectButton':
+            Mode = 'rect';
+            togglePointerEvents(Mode); 
+            removeCanvasListeners();
+            let rectstartPos = null;
+            let currentRect = null;
+            let rectisMouseDown = false;
+
+            console.log(': rect start')
+            
+            stage.on('mousedown', (e) => {
+              console.log('mousedown rect')
+
+              if (Mode !== 'rect') return;
+              rectstartPos = stage.getPointerPosition();
+              isShape = true;
+              rectisMouseDown = true;
+              
+              const pos = stage.getPointerPosition();
+              const shape = stage.getIntersection(pos);
+
+              if (shape instanceof Konva.Rect) {
+                layer.find('Transformer').forEach((tr) => {
+                  if (tr.nodes()[0] === shape) {
+                    isShape = false;
+                    rectisMouseDown = false;
+                    tr.show();
+                  } else {
+                    tr.hide();
+                  }
+                });
+                layer.batchDraw();
+              } else {                
+                layer.find('Transformer').forEach(tr => tr.hide());
+              }
+              console.log('도형클릭 5 rect');
+
+             });
+
+             stage.on('mousemove', (e) => {
+              if (!isShape || Mode !== 'rect' || !rectisMouseDown) return;
+              console.log('mousemove rect')
+              
+              const pos = stage.getPointerPosition();
+              if (!currentRect && (pos.x !== rectstartPos.x || pos.y !== rectstartPos.y)) {
+
+              console.log('mousemove rect makeRect')
+
+                makeRect();
+                currentRect = rect;
+                currentRect.position(rectstartPos);
+                // currentRect.radius(1); 
+              }
+             
+              if (currentRect) {
+                const dx = pos.x - rectstartPos.x;
+                const dy = pos.y - rectstartPos.y;
+                currentRect.position({
+                  x: rectstartPos.x,
+                  y: rectstartPos.y
+                });
+                currentRect.width(Math.abs(dx));
+                currentRect.height(Math.abs(dy));
+                layer.batchDraw();
+              }
+             });
+             
+             stage.on('mouseup', () => {
+              rectisMouseDown = false;
+              
+              if (Mode !== 'rect' || !currentRect) return;
+              currentRect.destroy();
+              
+              makeCompletedRect();
+              rect.position(currentRect.position());
+              rect.width(currentRect.width());
+              rect.height(currentRect.height());
+              
+              isShape = false;
+              currentRect = null;
+              layer.batchDraw();
              });
             
             break;
