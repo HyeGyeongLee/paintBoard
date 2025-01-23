@@ -486,37 +486,40 @@ function makeCompletedCircle() {
             let startPos = null;
             let currentCircle = null;
             let isMouseDown = false;
+            let shapeTransfomer = false;
             
             stage.on('mousedown', (e) => {
-              if (Mode !== 'circle') return;
               console.log('mousedown')
+
+              if (Mode !== 'circle') return;
               startPos = stage.getPointerPosition();
               isShape = true;
               isMouseDown = true;
+              
+              const pos = stage.getPointerPosition();
+              const shape = stage.getIntersection(pos);
+
+              // 모든 transformer 숨기기
+              if (shape instanceof Konva.Ellipse) {
+                // 기존 도형 클릭
+                layer.find('Transformer').forEach((tr) => {
+                  if (tr.nodes()[0] === shape) {
+                    isShape = false;
+                    isMouseDown = false;
+                    tr.show();
+                  } else {
+                    tr.hide();
+                  }
+                });
+                layer.batchDraw();
+              } else {
+                layer.find('Transformer').forEach(tr => tr.hide());
+              }
              });
 
-             stage.on('mouseup', () => {
-              console.log('mouseup')
-              isMouseDown = false;
-
-              if (Mode !== 'circle' || !currentCircle) return;
-                // 임시 원 삭제
-                currentCircle.destroy();
-                
-                // 완성된 원 생성
-                makeCompletedCircle();
-                circle.position(currentCircle.position());
-                circle.radius(currentCircle.radius());
-
-                isShape = false;
-                currentCircle = null;
-                layer.batchDraw();
-                
-            });
-             
              stage.on('mousemove', (e) => {
               if (!isShape || Mode !== 'circle' || !isMouseDown) return;
-              console.log('mousedown')
+              console.log('mousemove')
               
               const pos = stage.getPointerPosition();
               if (!currentCircle && (pos.x !== startPos.x || pos.y !== startPos.y)) {
@@ -538,8 +541,32 @@ function makeCompletedCircle() {
                 layer.batchDraw();
               }
              });
-            
+             
+             stage.on('mouseup', () => {
+              console.log('mouseup')
 
+              isMouseDown = false;
+             
+              if (Mode !== 'circle' || !currentCircle) return;
+              currentCircle.destroy();
+              
+              makeCompletedCircle();
+              circle.position(currentCircle.position());
+              circle.radiusX(currentCircle.radiusX());
+              circle.radiusY(currentCircle.radiusY());
+             
+              isShape = false;
+              currentCircle = null;
+              
+              // 새로 생성된 도형의 transformer 보이기
+              layer.find('Transformer').forEach((tr) => {
+                if (tr.nodes()[0] === circle) {
+                  tr.show();
+                }
+              });
+              layer.batchDraw();
+             });
+            
             break;
       } 
       
