@@ -380,19 +380,19 @@ function makeCompletedCircle() {
     e.cancelBubble = true;
   });
 
-  circle.on('transformstart', function() {
-    tr.show();
-  });
+  // circle.on('transformstart', function() {
+  //   tr.show();
+  // });
 
-  circle.on('dragstart', function() {
-    tr.show();
-  });
+  // circle.on('dragstart', function() {
+  //   tr.show();
+  // });
 
-  circle.on('dragend', function() {
-    if (!tr.isTransforming()) {
-      tr.hide();
-    }
-  });
+  // circle.on('dragend', function() {
+  //   if (!tr.isTransforming()) {
+  //     tr.hide();
+  //   }
+  // });
   
   layer.add(circle);
   layer.add(tr);
