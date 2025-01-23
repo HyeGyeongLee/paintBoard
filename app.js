@@ -346,9 +346,10 @@ let isShape = false;
 let circle = null;
 
 function makeCircle() {
-circle = new Konva.Circle({
+circle = new Konva.Ellipse({
   fill: 'rgba(0, 0, 255, 0.5)', 
-  radius: 20,
+  radiusX: 20,
+  radiusY: 20,
   stroke: 'black',
   strokeWidth: 4,
   draggable: true
@@ -359,25 +360,27 @@ layer.batchDraw();
 }
 
 function makeCompletedCircle() {
-circle = new Konva.Circle({
-  // fill: 'red',
-  radius: 20,
-  stroke: 'red',
-  strokeWidth: 4,
-  draggable: true
-});
+  circle = new Konva.Ellipse({
+    // fill: 'red',
+    radiusX: 20,
+    radiusY: 20,
+    stroke: 'red',
+    strokeWidth: 4,
+    draggable: true
+  });
 
-// Transformer 추가
-const tr = new Konva.Transformer({
-  nodes: [circle],
-  keepRatio: true,
-  enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
-});
+  // Transformer 추가
+  const tr = new Konva.Transformer({
+    nodes: [circle],
+    keepRatio: true,
+    enabledAnchors: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+  });
 
-layer.add(circle);
-layer.add(tr);
-layer.batchDraw();
+  layer.add(circle);
+  layer.add(tr);
+  layer.batchDraw();
 }
+
 
   document.addEventListener('click', function (event) {
       const colorElement = event.target.closest('.controls__color');
@@ -526,13 +529,12 @@ layer.batchDraw();
               if (currentCircle) {
                 const dx = pos.x - startPos.x;
                 const dy = pos.y - startPos.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
                 currentCircle.position({
                   x: startPos.x + dx/2,
                   y: startPos.y + dy/2
                 });
-                currentCircle.radius(distance/2);
+                currentCircle.radiusX(Math.abs(dx/2));
+                currentCircle.radiusY(Math.abs(dy/2));
                 layer.batchDraw();
               }
              });
