@@ -93,7 +93,7 @@ window.onload = function () {
 function togglePointerEvents(mode) {
   console.log(mode, ':: mode')
   const konvaContainer = document.getElementById('konvaContainer');
-  if (mode === 'textMode' || mode === 'circle' || mode === 'rect') {
+  if (mode === 'textMode' || mode === 'circle' || mode === 'rect' || mode === 'triangle') {
       konvaContainer.style.pointerEvents = 'auto';  // 텍스트 모드일 때는 활성화
   } else {
       konvaContainer.style.pointerEvents = 'none';  // 다른 모드일 때는 비활성화
@@ -455,6 +455,66 @@ function makeCompletedRect() {
   layer.batchDraw();
 }
 
+let triangle = null;
+
+function makeTriangle() {
+  triangle = new Konva.RegularPolygon({
+    fill: 'rgba(0, 0, 255, 0.5)', 
+    x: 80,
+    y: 120,
+    sides: 3,
+    radius: 80,
+    stroke: 'black',
+    strokeWidth: 4,
+    draggable: true
+  });
+
+  layer.add(triangle);
+  layer.batchDraw();
+}
+
+function makeCompletedTriangle() {
+  triangle = new Konva.RegularPolygon({
+    // fill: 'red',
+    x: 80,
+    y: 120,
+    sides: 3,
+    radius: 80,
+    stroke: 'red',
+    strokeWidth: 4,
+    draggable: true
+  });
+
+  // Transformer 추가
+  const tr = new Konva.Transformer({
+    nodes: [triangle],
+    keepRatio: true,
+  });
+
+   // transformer 내부 클릭 시 이벤트 중지
+   tr.on('mousedown', function(e) {
+    e.cancelBubble = true;
+  });
+
+  // circle.on('transformstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragend', function() {
+  //   if (!tr.isTransforming()) {
+  //     tr.hide();
+  //   }
+  // });
+  
+  layer.add(triangle);
+  layer.add(tr);
+  layer.batchDraw();
+}
+
 
   document.addEventListener('click', function (event) {
       const colorElement = event.target.closest('.controls__color');
@@ -726,6 +786,90 @@ function makeCompletedRect() {
              });
             
             break;
+
+            case 'triangleButton':
+              Mode = 'triangle';
+              togglePointerEvents(Mode); 
+              removeCanvasListeners();
+              let trianglestartPos = null;
+              let currenttriangle = null;
+              let triangleisMouseDown = false;
+  
+              console.log(': triangle start')
+              
+              stage.on('mousedown', (e) => {
+                console.log('mousedown triangle')
+  
+                if (Mode !== 'triangle') return;
+                trianglestartPos = stage.getPointerPosition();
+                isShape = true;
+                triangleisMouseDown = true;
+                
+                const pos = stage.getPointerPosition();
+                const shape = stage.getIntersection(pos);
+  
+                if (shape instanceof Konva.RegularPolygon) {
+                  layer.find('Transformer').forEach((tr) => {
+                    if (tr.nodes()[0] === shape) {
+                      isShape = false;
+                      triangleisMouseDown = false;
+                      tr.show();
+                    } else {
+                      tr.hide();
+                    }
+                  });
+                  layer.batchDraw();
+                } else {                
+                  layer.find('Transformer').forEach(tr => tr.hide());
+                }
+                console.log('도형클릭 5 rect');
+  
+               });
+  
+               stage.on('mousemove', (e) => {
+                if (!isShape || Mode !== 'triangle' || !triangleisMouseDown) return;
+                console.log('mousemove rect')
+                
+                const pos = stage.getPointerPosition();
+                if (!currenttriangle && (pos.x !== trianglestartPos.x || pos.y !== trianglestartPos.y)) {
+  
+                console.log('mousemove rect makeRect')
+  
+                  makeTriangle();
+                  currenttriangle = triangle;
+                  currenttriangle.position(trianglestartPos);
+                }
+               
+                if (currenttriangle) {
+                  const dx = pos.x - trianglestartPos.x;
+                  const dy = pos.y - trianglestartPos.y;
+                  currenttriangle.position({
+                    x: trianglestartPos.x,
+                    y: trianglestartPos.y
+                  });
+                  currenttriangle.width(Math.abs(dx));
+                  currenttriangle.height(Math.abs(dy));
+                  layer.batchDraw();
+                }
+               });
+               
+               stage.on('mouseup', () => {
+                triangleisMouseDown = false;
+                
+                if (Mode !== 'triangle' || !currenttriangle) return;
+                currenttriangle.destroy();
+                
+                makeCompletedTriangle();
+                triangle.position(currenttriangle.position());
+                triangle.width(currenttriangle.width());
+                triangle.height(currenttriangle.height());
+                
+                isShape = false;
+                currenttriangle = null;
+                layer.batchDraw();
+               });
+              
+              break;
       } 
       
   });
