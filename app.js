@@ -93,7 +93,7 @@ window.onload = function () {
 function togglePointerEvents(mode) {
   console.log(mode, ':: mode')
   const konvaContainer = document.getElementById('konvaContainer');
-  if (mode === 'textMode' || mode === 'circle' || mode === 'rect' || mode === 'triangle') {
+  if (mode === 'textMode' || mode === 'circle' || mode === 'rect' || mode === 'triangle' || mode === 'line') {
       konvaContainer.style.pointerEvents = 'auto';  // 텍스트 모드일 때는 활성화
   } else {
       konvaContainer.style.pointerEvents = 'none';  // 다른 모드일 때는 비활성화
@@ -516,6 +516,63 @@ function makeCompletedTriangle() {
 }
 
 
+let line = null;
+
+function makeLine() {
+  line = new Konva.Line({
+    points: [5, 50, 140, 50, 250, 50, 300, 50],
+    stroke: 'black',
+    strokeWidth: 4,
+    lineCap: 'round',
+    lineJoin: 'round',
+    draggable: true
+  });
+
+  layer.add(line);
+  layer.batchDraw();
+}
+
+function makeCompletedLine() {
+  line = new Konva.Line({
+    points: [5, 50, 140, 50, 250, 50, 300, 50],
+    stroke: 'red',
+    strokeWidth: 4,
+    lineCap: 'round',
+    lineJoin: 'round',
+    draggable: true
+  });
+
+  // Transformer 추가
+  const tr = new Konva.Transformer({
+    nodes: [line],
+    keepRatio: true,
+  });
+
+   // transformer 내부 클릭 시 이벤트 중지
+   tr.on('mousedown', function(e) {
+    e.cancelBubble = true;
+  });
+
+  // circle.on('transformstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragstart', function() {
+  //   tr.show();
+  // });
+
+  // circle.on('dragend', function() {
+  //   if (!tr.isTransforming()) {
+  //     tr.hide();
+  //   }
+  // });
+  
+  layer.add(line);
+  layer.add(tr);
+  layer.batchDraw();
+}
+
+
   document.addEventListener('click', function (event) {
       const colorElement = event.target.closest('.controls__color');
       const backgroundColorPicker = document.getElementById('backgroundColorPicker');
@@ -866,6 +923,84 @@ function makeCompletedTriangle() {
                 
                 isShape = false;
                 currenttriangle = null;
+                layer.batchDraw();
+               });
+              
+              break;
+            
+            case 'lineButton':
+              Mode = 'line';
+              togglePointerEvents(Mode); 
+              removeCanvasListeners();
+              let linestartPos = null;
+              let currentline = null;
+              let lineisMouseDown = false;
+  
+              console.log(': line start');
+
+              stage.on('mousedown', (e) => {
+                console.log('mousedown line')
+  
+                if (Mode !== 'line') return;
+                linestartPos = stage.getPointerPosition();
+                isShape = true;
+                lineisMouseDown = true;
+                
+                const pos = stage.getPointerPosition();
+                const shape = stage.getIntersection(pos);
+  
+                if (shape instanceof Konva.Line) {
+                  layer.find('Transformer').forEach((tr) => {
+                    if (tr.nodes()[0] === shape) {
+                      isShape = false;
+                      lineisMouseDown = false;
+                      tr.show();
+                    } else {
+                      tr.hide();
+                    }
+                  });
+                  layer.batchDraw();
+                } else {                
+                  layer.find('Transformer').forEach(tr => tr.hide());
+                }
+                console.log('도형클릭 5 line');
+  
+               });
+  
+               stage.on('mousemove', (e) => {
+                if (!isShape || Mode !== 'line' || !lineisMouseDown) return;
+                console.log('mousemove line')
+                
+                const pos = stage.getPointerPosition();
+
+                if (!currentline && (pos.x !== linestartPos.x || pos.y !== linestartPos.y)) {
+                  makeLine();
+                  currentline = line;
+                  currentline.points([linestartPos.x, linestartPos.y, linestartPos.x, linestartPos.y]);
+                }
+                              
+                if (currentline) {
+                  currentline.points([
+                    linestartPos.x, 
+                    linestartPos.y, 
+                    pos.x,
+                    pos.y
+                  ]);
+                  layer.batchDraw();
+                }
+               });
+               
+               stage.on('mouseup', () => {
+                lineisMouseDown = false;
+                
+                if (Mode !== 'line' || !currentline) return;
+                currentline.destroy();
+                
+                makeCompletedLine();
+                line.points(currentline.points());
+                
+                isShape = false;
+                currentline = null;
                 layer.batchDraw();
                });
               
